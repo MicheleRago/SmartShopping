@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:SmartShopping.ViewModels"
+             x:Class="SmartShopping.Views.ShoppingListPage"
+             x:DataType="vm:ShoppingListViewModel"
+             Title="{Binding Title}">
+
+    <Grid RowDefinitions="Auto,Auto,*">
+        <!-- Total Cost -->
+        <Frame Grid.Row="0"
+               Margin="10"
+               Padding="15"
+               BorderColor="Gray"
+               CornerRadius="8">
+            <HorizontalStackLayout>
+                <Label Text="Totale stimato:"
+                       FontSize="16"
+                       VerticalOptions="Center"/>
+                <Label Text="{Binding TotalEstimatedCost, StringFormat='€{0:F2}'}"
+                       FontSize="20"
+                       FontAttributes="Bold"
+                       TextColor="Green"
+                       VerticalOptions="Center"
+                       Margin="5,0,0,0"/>
+            </HorizontalStackLayout>
+        </Frame>
+
+        <!-- Action Buttons -->
+        <HorizontalStackLayout Grid.Row="1"
+                              Margin="10,0,10,10"
+                              Spacing="10">
+            <Button Text="Genera Lista"
+                    Command="{Binding GenerateShoppingListCommand}"
+                    HorizontalOptions="FillAndExpand"/>
+            <Button Text="Condividi"
+                    Command="{Binding ShareShoppingListCommand}"
+                    HorizontalOptions="FillAndExpand"/>
+        </HorizontalStackLayout>
+
+        <!-- Shopping List -->
+        <RefreshView Grid.Row="2"
+                     Command="{Binding LoadShoppingListCommand}"
+                     IsRefreshing="{Binding IsBusy}">
+            <CollectionView ItemsSource="{Binding ShoppingItems}">
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout HorizontalOptions="Center"
+                                       VerticalOptions="Center">
+                        <Label Text="La lista della spesa è vuota"
+                               FontSize="18"
+                               HorizontalOptions="Center"/>
+                        <Button Text="Genera Lista"
+                                Command="{Binding GenerateShoppingListCommand}"
+                                Margin="0,10,0,0"/>
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Margin="10,5"
+                               Padding="10"
+                               BorderColor="Gray"
+                               CornerRadius="8">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <CheckBox Grid.Column="0"
+                                         IsChecked="{Binding IsCompleted}"
+                                         CheckedChanged="OnItemCheckedChanged"
+                                         VerticalOptions="Center"/>
+                                <VerticalStackLayout Grid.Column="1"
+                                                   Margin="10,0">
+                                    <Label Text="{Binding Product.Name}"
+                                           FontSize="16"
+                                           FontAttributes="Bold"/>
+                                    <Label Text="{Binding Product.Brand}"
+                                           FontSize="14"
+                                           TextColor="Gray"/>
+                                    <Label Text="{Binding QuantityNeeded, StringFormat='Quantità: {0}'}"
+                                           FontSize="14"/>
+                                </VerticalStackLayout>
+                                <Label Grid.Column="2"
+                                       Text="{Binding EstimatedPrice, StringFormat='€{0:F2}'}"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="Green"
+                                       VerticalOptions="Center"/>
+                            </Grid>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage> 

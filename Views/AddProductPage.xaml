@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:SmartShopping.ViewModels"
+             x:Class="SmartShopping.Views.AddProductPage"
+             x:DataType="vm:AddProductViewModel"
+             Title="Aggiungi Prodotto">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+            <Label Text="Inserisci i dettagli del prodotto"
+                   FontSize="20"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"/>
+
+            <Entry Placeholder="Codice a barre"
+                   Text="{Binding Barcode}"
+                   IsEnabled="False"/>
+
+            <Entry Placeholder="Nome prodotto"
+                   Text="{Binding Name}"/>
+
+            <Entry Placeholder="Marca"
+                   Text="{Binding Brand}"/>
+
+            <Entry Placeholder="Categoria"
+                   Text="{Binding Category}"/>
+
+            <Entry Placeholder="Unità di misura"
+                   Text="{Binding Unit}"/>
+
+            <Entry Placeholder="URL immagine"
+                   Text="{Binding ImageUrl}"/>
+
+            <Button Text="Salva"
+                    Command="{Binding SaveCommand}"
+                    IsEnabled="{Binding IsValid}"
+                    HorizontalOptions="Fill"/>
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                             IsVisible="{Binding IsBusy}"
+                             HorizontalOptions="Center"/>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage> 

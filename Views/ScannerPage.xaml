@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:SmartShopping.ViewModels"
+             xmlns:zxing="clr-namespace:ZXing.Net.Maui.Controls;assembly=ZXing.Net.Maui"
+             x:Class="SmartShopping.Views.ScannerPage"
+             x:DataType="vm:ScannerViewModel"
+             Title="{Binding Title}">
+
+    <Grid RowDefinitions="*,Auto">
+        <!-- Camera Preview -->
+        <zxing:CameraBarcodeReaderView Grid.Row="0"
+                                      x:Name="CameraBarcodeReaderView"
+                                      BarcodesDetected="OnBarcodesDetected"
+                                      IsDetecting="{Binding IsScanning}"/>
+
+        <!-- Overlay -->
+        <Grid Grid.Row="0"
+              BackgroundColor="Black"
+              Opacity="0.5">
+            <Frame Margin="50"
+                   Padding="0"
+                   BorderColor="White"
+                   CornerRadius="8"
+                   HasShadow="False">
+                <BoxView HeightRequest="2"
+                         Color="White"/>
+            </Frame>
+        </Grid>
+
+        <!-- Controls -->
+        <VerticalStackLayout Grid.Row="1"
+                            Padding="20"
+                            Spacing="10">
+            <Label Text="Inquadra il codice a barre"
+                   FontSize="18"
+                   HorizontalOptions="Center"/>
+            <Label Text="{Binding ScanResult}"
+                   FontSize="16"
+                   HorizontalOptions="Center"
+                   IsVisible="{Binding ScanResult, Converter={StaticResource NotNullConverter}}"/>
+            <Button Text="Riprendi Scansione"
+                    Command="{Binding StartScanningCommand}"
+                    IsVisible="{Binding ScanResult, Converter={StaticResource NotNullConverter}}"/>
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage> 

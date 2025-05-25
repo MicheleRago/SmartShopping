@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:SmartShopping.ViewModels"
+             x:Class="SmartShopping.Views.InventoryPage"
+             x:DataType="vm:InventoryViewModel"
+             Title="{Binding Title}">
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- Search Bar -->
+        <SearchBar Grid.Row="0"
+                   Placeholder="Cerca prodotti..."
+                   Text="{Binding SearchText}"
+                   SearchCommand="{Binding SearchInventoryCommand}"
+                   Margin="10"/>
+
+        <!-- Inventory List -->
+        <RefreshView Grid.Row="1"
+                     Command="{Binding LoadInventoryCommand}"
+                     IsRefreshing="{Binding IsBusy}">
+            <CollectionView ItemsSource="{Binding InventoryItems}">
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout HorizontalOptions="Center"
+                                       VerticalOptions="Center">
+                        <Label Text="Nessun prodotto nell'inventario"
+                               FontSize="18"
+                               HorizontalOptions="Center"/>
+                        <Button Text="Aggiungi Prodotto"
+                                Command="{Binding AddItemCommand}"
+                                Margin="0,10,0,0"/>
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <SwipeView>
+                            <SwipeView.RightItems>
+                                <SwipeItems>
+                                    <SwipeItem Text="Modifica"
+                                              Command="{Binding Source={RelativeSource AncestorType={x:Type vm:InventoryViewModel}}, Path=EditItemCommand}"
+                                              CommandParameter="{Binding}"
+                                              BackgroundColor="Orange"/>
+                                    <SwipeItem Text="Elimina"
+                                              Command="{Binding Source={RelativeSource AncestorType={x:Type vm:InventoryViewModel}}, Path=DeleteItemCommand}"
+                                              CommandParameter="{Binding}"
+                                              BackgroundColor="Red"/>
+                                </SwipeItems>
+                            </SwipeView.RightItems>
+                            <Frame Margin="10,5"
+                                   Padding="10"
+                                   BorderColor="Gray"
+                                   CornerRadius="8">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <VerticalStackLayout Grid.Column="0">
+                                        <Label Text="{Binding Product.Name}"
+                                               FontSize="16"
+                                               FontAttributes="Bold"/>
+                                        <Label Text="{Binding Product.Brand}"
+                                               FontSize="14"
+                                               TextColor="Gray"/>
+                                        <Label Text="{Binding CurrentQuantity, StringFormat='Quantità: {0}'}"
+                                               FontSize="14"/>
+                                        <Label Text="{Binding ExpiryDate, StringFormat='Scadenza: {0:d}'}"
+                                               FontSize="14"
+                                               IsVisible="{Binding ExpiryDate, Converter={StaticResource NotNullConverter}}"/>
+                                    </VerticalStackLayout>
+                                    <Label Grid.Column="1"
+                                           Text="{Binding Location}"
+                                           VerticalOptions="Center"
+                                           HorizontalOptions="End"
+                                           FontSize="14"
+                                           TextColor="Gray"/>
+                                </Grid>
+                            </Frame>
+                        </SwipeView>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+
+        <!-- Add Button -->
+        <Button Text="+"
+                FontSize="24"
+                WidthRequest="60"
+                HeightRequest="60"
+                CornerRadius="30"
+                HorizontalOptions="End"
+                VerticalOptions="End"
+                Margin="20"
+                Command="{Binding AddItemCommand}"/>
+    </Grid>
+</ContentPage> 

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="SmartShopping.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:SmartShopping.Views"
+    Shell.FlyoutBehavior="Disabled">
+
+    <TabBar>
+        <Tab Title="Inventario" Icon="inventory.png">
+            <ShellContent
+                ContentTemplate="{DataTemplate views:InventoryPage}"
+                Route="InventoryPage" />
+        </Tab>
+        <Tab Title="Lista Spesa" Icon="cart.png">
+            <ShellContent
+                ContentTemplate="{DataTemplate views:ShoppingListPage}"
+                Route="ShoppingListPage" />
+        </Tab>
+        <Tab Title="Scanner" Icon="scanner.png">
+            <ShellContent
+                ContentTemplate="{DataTemplate views:ScannerPage}"
+                Route="ScannerPage" />
+        </Tab>
+        <Tab Title="Scadenze" Icon="calendar.png">
+            <ShellContent
+                ContentTemplate="{DataTemplate views:ExpiryPage}"
+                Route="ExpiryPage" />
+        </Tab>
+        <Tab Title="Backup" Icon="backup.png">
+            <ShellContent
+                ContentTemplate="{DataTemplate views:BackupPage}"
+                Route="BackupPage" />
+        </Tab>
+    </TabBar>
+
+</Shell>
