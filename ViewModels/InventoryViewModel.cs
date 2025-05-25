@@ -2,8 +2,10 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Maui.ApplicationModel;
 using SmartShopping.Data;
 using SmartShopping.Models;
+using SmartShopping.Views;
 
 namespace SmartShopping.ViewModels;
 
@@ -21,7 +23,7 @@ public partial class InventoryViewModel : BaseViewModel
     {
         _context = context;
         Title = "Inventario";
-        inventoryItems = new ObservableCollection<InventoryItem>();
+        InventoryItems = new ObservableCollection<InventoryItem>();
 
         try
         {
@@ -58,15 +60,22 @@ public partial class InventoryViewModel : BaseViewModel
                 .OrderBy(i => i.Product.Name)
                 .ToListAsync();
 
-            InventoryItems.Clear();
-            foreach (var item in items)
+            MainThread.BeginInvokeOnMainThread(() =>
             {
-                InventoryItems.Add(item);
-            }
+                InventoryItems.Clear();
+                foreach (var item in items)
+                {
+                    if (item.Product != null)
+                    {
+                        InventoryItems.Add(item);
+                    }
+                }
+            });
         }
         catch (Exception ex)
         {
-            await Shell.Current.DisplayAlert("Errore", $"Impossibile caricare l'inventario: {ex.Message}\n\nStack Trace: {ex.StackTrace}", "OK");
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+                await Shell.Current.DisplayAlert("Errore", $"Impossibile caricare l'inventario: {ex.Message}", "OK"));
         }
         finally
         {
@@ -90,15 +99,22 @@ public partial class InventoryViewModel : BaseViewModel
                 .OrderBy(i => i.Product.Name)
                 .ToListAsync();
 
-            InventoryItems.Clear();
-            foreach (var item in items)
+            MainThread.BeginInvokeOnMainThread(() =>
             {
-                InventoryItems.Add(item);
-            }
+                InventoryItems.Clear();
+                foreach (var item in items)
+                {
+                    if (item.Product != null)
+                    {
+                        InventoryItems.Add(item);
+                    }
+                }
+            });
         }
         catch (Exception ex)
         {
-            await Shell.Current.DisplayAlert("Errore", "Impossibile cercare nell'inventario", "OK");
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+                await Shell.Current.DisplayAlert("Errore", "Impossibile cercare nell'inventario", "OK"));
         }
         finally
         {
@@ -109,40 +125,90 @@ public partial class InventoryViewModel : BaseViewModel
     [RelayCommand]
     private async Task AddItemAsync()
     {
-        await Shell.Current.GoToAsync("//ScannerPage");
+        await MainThread.InvokeOnMainThreadAsync(async () =>
+            await Shell.Current.GoToAsync("//ScannerPage"));
     }
 
     [RelayCommand]
     private async Task EditItemAsync(InventoryItem item)
     {
+        if (item?.Product == null) return;
+
         var parameters = new Dictionary<string, object>
         {
             { "Item", item }
         };
-        await Shell.Current.GoToAsync("//EditItemPage", parameters);
+        await MainThread.InvokeOnMainThreadAsync(async () =>
+            await Shell.Current.GoToAsync($"{nameof(EditItemPage)}", parameters));
     }
 
     [RelayCommand]
     private async Task DeleteItemAsync(InventoryItem item)
     {
-        var confirm = await Shell.Current.DisplayAlert(
-            "Conferma",
-            $"Sei sicuro di voler eliminare {item.Product?.Name}?",
-            "Sì",
-            "No");
-
-        if (confirm)
+        try 
         {
-            try
+            if (item == null)
             {
-                _context.InventoryItems.Remove(item);
+                System.Diagnostics.Debug.WriteLine("DeleteItemAsync: item is null");
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"DeleteItemAsync: item.Id = {item.Id}");
+            System.Diagnostics.Debug.WriteLine($"DeleteItemAsync: item.Product = {(item.Product == null ? "null" : "not null")}");
+
+            // Ricarica l'item con il prodotto associato per essere sicuri di avere tutti i dati
+            var itemWithProduct = await _context.InventoryItems
+                .Include(i => i.Product)
+                .FirstOrDefaultAsync(i => i.Id == item.Id);
+
+            if (itemWithProduct == null)
+            {
+                System.Diagnostics.Debug.WriteLine("DeleteItemAsync: itemWithProduct not found in database");
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                    await Shell.Current.DisplayAlert("Errore", "Elemento non trovato", "OK"));
+                return;
+            }
+
+            if (itemWithProduct.Product == null)
+            {
+                System.Diagnostics.Debug.WriteLine("DeleteItemAsync: itemWithProduct.Product is null");
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                    await Shell.Current.DisplayAlert("Errore", "Prodotto non trovato", "OK"));
+                return;
+            }
+
+            var productName = itemWithProduct.Product.Name;
+            System.Diagnostics.Debug.WriteLine($"DeleteItemAsync: productName = {productName}");
+            
+            var confirm = await MainThread.InvokeOnMainThreadAsync(async () =>
+                await Shell.Current.DisplayAlert(
+                    "Conferma",
+                    $"Sei sicuro di voler eliminare {productName}?",
+                    "Sì",
+                    "No"));
+
+            if (confirm)
+            {
+                _context.InventoryItems.Remove(itemWithProduct);
                 await _context.SaveChangesAsync();
-                InventoryItems.Remove(item);
+                
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    // Rimuovi l'item dalla collezione osservabile
+                    var itemToRemove = InventoryItems.FirstOrDefault(i => i.Id == item.Id);
+                    if (itemToRemove != null)
+                    {
+                        InventoryItems.Remove(itemToRemove);
+                    }
+                });
             }
-            catch (Exception ex)
-            {
-                await Shell.Current.DisplayAlert("Errore", "Impossibile eliminare l'elemento", "OK");
-            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"DeleteItemAsync error: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+                await Shell.Current.DisplayAlert("Errore", "Impossibile eliminare l'elemento", "OK"));
         }
     }
 } 

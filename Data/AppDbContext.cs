@@ -32,6 +32,9 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(s => s.Barcode);
 
+        modelBuilder.Entity<ExportData>()
+            .HasKey(e => e.ExportId);
+
         modelBuilder.Entity<AppSettings>()
             .HasData(new AppSettings
             {

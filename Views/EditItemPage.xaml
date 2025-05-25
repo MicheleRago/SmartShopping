@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:SmartShopping.ViewModels"
+             xmlns:system="clr-namespace:System;assembly=netstandard"
+             x:Class="SmartShopping.Views.EditItemPage"
+             x:DataType="vm:EditItemViewModel"
+             Title="{Binding Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+            <Label Text="Modifica Prodotto"
+                   FontSize="20"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"/>
+
+            <Entry Placeholder="Nome prodotto"
+                   Text="{Binding Name}"/>
+
+            <Entry Placeholder="Marca"
+                   Text="{Binding Brand}"/>
+
+            <Entry Placeholder="Categoria"
+                   Text="{Binding Category}"/>
+
+            <Entry Placeholder="Unità di misura"
+                   Text="{Binding Unit}"/>
+
+            <Label Text="Quantità"
+                   FontSize="16"/>
+            <Stepper Value="{Binding Quantity}"
+                     Minimum="0"
+                     Maximum="999"
+                     Increment="1"/>
+            <Label Text="{Binding Quantity, StringFormat='Quantità attuale: {0}'}"
+                   FontSize="14"/>
+
+            <Label Text="Soglia minima"
+                   FontSize="16"/>
+            <Stepper Value="{Binding MinThreshold}"
+                     Minimum="0"
+                     Maximum="999"
+                     Increment="1"/>
+            <Label Text="{Binding MinThreshold, StringFormat='Soglia minima: {0}'}"
+                   FontSize="14"/>
+
+            <Label Text="Data di scadenza"
+                   FontSize="16"/>
+            <DatePicker Date="{Binding ExpiryDate}"
+                       Format="dd/MM/yyyy"
+                       MinimumDate="{x:Static system:DateTime.Today}"/>
+
+            <Picker Title="Posizione"
+                    SelectedItem="{Binding Location}">
+                <Picker.ItemsSource>
+                    <x:Array Type="{x:Type x:String}">
+                        <x:String>Frigo</x:String>
+                        <x:String>Freezer</x:String>
+                        <x:String>Dispensa</x:String>
+                        <x:String>Altro</x:String>
+                    </x:Array>
+                </Picker.ItemsSource>
+            </Picker>
+
+            <Button Text="Salva"
+                    Command="{Binding SaveCommand}"
+                    IsEnabled="{Binding IsValid}"
+                    HorizontalOptions="Fill"/>
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                             IsVisible="{Binding IsBusy}"
+                             HorizontalOptions="Center"/>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage> 

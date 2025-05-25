@@ -28,5 +28,9 @@
 	</array>
 	<key>XSAppIconAssets</key>
 	<string>Assets.xcassets/appicon.appiconset</string>
+	<key>NSCameraUsageDescription</key>
+	<string>L'app ha bisogno di accedere alla fotocamera per scansionare i codici a barre</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>L'app ha bisogno di accedere al microfono per il funzionamento della fotocamera</string>
 </dict>
 </plist>

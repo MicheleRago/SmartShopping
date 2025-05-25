@@ -7,27 +7,27 @@
     Shell.FlyoutBehavior="Disabled">
 
     <TabBar>
-        <Tab Title="Inventario" Icon="inventory.png">
+        <Tab Title="Inventario">
             <ShellContent
                 ContentTemplate="{DataTemplate views:InventoryPage}"
                 Route="InventoryPage" />
         </Tab>
-        <Tab Title="Lista Spesa" Icon="cart.png">
+        <Tab Title="Lista Spesa">
             <ShellContent
                 ContentTemplate="{DataTemplate views:ShoppingListPage}"
                 Route="ShoppingListPage" />
         </Tab>
-        <Tab Title="Scanner" Icon="scanner.png">
+        <Tab Title="Scanner">
             <ShellContent
                 ContentTemplate="{DataTemplate views:ScannerPage}"
                 Route="ScannerPage" />
         </Tab>
-        <Tab Title="Scadenze" Icon="calendar.png">
+        <Tab Title="Scadenze">
             <ShellContent
                 ContentTemplate="{DataTemplate views:ExpiryPage}"
                 Route="ExpiryPage" />
         </Tab>
-        <Tab Title="Backup" Icon="backup.png">
+        <Tab Title="Backup">
             <ShellContent
                 ContentTemplate="{DataTemplate views:BackupPage}"
                 Route="BackupPage" />

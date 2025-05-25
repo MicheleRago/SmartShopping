@@ -1,6 +1,7 @@
 using SmartShopping.ViewModels;
 using ZXing.Net.Maui;
 using ZXing.Net.Maui.Controls;
+using Microsoft.Maui.ApplicationModel;
 
 namespace SmartShopping.Views;
 
@@ -15,10 +16,31 @@ public partial class ScannerPage : ContentPage
         BindingContext = viewModel;
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
-        _viewModel.StartScanningCommand.Execute(null);
+
+        try
+        {
+            var status = await Permissions.CheckStatusAsync<Permissions.Camera>();
+            if (status != PermissionStatus.Granted)
+            {
+                status = await Permissions.RequestAsync<Permissions.Camera>();
+                if (status != PermissionStatus.Granted)
+                {
+                    await DisplayAlert("Permesso negato", 
+                        "L'app necessita del permesso della fotocamera per funzionare.", "OK");
+                    return;
+                }
+            }
+
+            _viewModel.StartScanningCommand.Execute(null);
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Errore", 
+                "Impossibile accedere alla fotocamera. Verifica i permessi dell'app.", "OK");
+        }
     }
 
     protected override void OnDisappearing()

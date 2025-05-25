@@ -10,5 +10,5 @@ public class Product
     public string Category { get; set; } = string.Empty;
     public string ImageUrl { get; set; } = string.Empty;
     public string Unit { get; set; } = string.Empty;
-    public JsonDocument? NutritionalInfo { get; set; }
+    public string? NutritionalInfo { get; set; }
 } 

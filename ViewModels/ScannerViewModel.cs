@@ -1,9 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Maui.ApplicationModel;
 using SmartShopping.Data;
 using SmartShopping.Models;
 using SmartShopping.Services;
+using SmartShopping.Views;
 using ZXing.Net.Maui;
 
 namespace SmartShopping.ViewModels;
@@ -31,8 +33,11 @@ public partial class ScannerViewModel : BaseViewModel
     {
         if (result == null || string.IsNullOrEmpty(result.Value)) return;
 
-        ScanResult = result.Value;
-        IsScanning = false;
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            ScanResult = result.Value;
+            IsScanning = false;
+        });
         
         // Processa il barcode
         ProcessBarcode(result.Value);
@@ -56,15 +61,17 @@ public partial class ScannerViewModel : BaseViewModel
 
                 if (product == null)
                 {
-                    var addManually = await Shell.Current.DisplayAlert(
-                        "Prodotto non trovato",
-                        "Il prodotto non è presente nel database. Vuoi aggiungerlo manualmente?",
-                        "Sì",
-                        "No");
+                    var addManually = await MainThread.InvokeOnMainThreadAsync(async () =>
+                        await Shell.Current.DisplayAlert(
+                            "Prodotto non trovato",
+                            "Il prodotto non è presente nel database. Vuoi aggiungerlo manualmente?",
+                            "Sì",
+                            "No"));
 
                     if (addManually)
                     {
-                        await Shell.Current.GoToAsync($"//AddProductPage?barcode={barcode}");
+                        await MainThread.InvokeOnMainThreadAsync(async () =>
+                            await Shell.Current.GoToAsync($"{nameof(AddProductPage)}?barcode={barcode}"));
                     }
                     return;
                 }
@@ -74,37 +81,87 @@ public partial class ScannerViewModel : BaseViewModel
                 await _context.SaveChangesAsync();
             }
 
-            // Verifica se il prodotto è già nell'inventario
-            var inventoryItem = await _context.InventoryItems
-                .FirstOrDefaultAsync(i => i.Barcode == barcode);
+            // Chiedi all'utente se vuole aggiungere una nuova unità o modificare una esistente
+            var existingItems = await _context.InventoryItems
+                .Include(i => i.Product)
+                .Where(i => i.Barcode == barcode)
+                .OrderByDescending(i => i.ExpiryDate)
+                .ToListAsync();
 
-            if (inventoryItem == null)
+            if (existingItems.Any())
             {
-                // Aggiungi all'inventario
-                inventoryItem = new InventoryItem
+                var action = await MainThread.InvokeOnMainThreadAsync(async () =>
+                    await Shell.Current.DisplayActionSheet(
+                        "Prodotto già presente",
+                        "Annulla",
+                        null,
+                        "Aggiungi nuova unità",
+                        "Modifica unità esistente"));
+
+                if (action == "Modifica unità esistente")
                 {
-                    Barcode = barcode,
-                    CurrentQuantity = 1,
-                    MinThreshold = 1,
-                    PurchaseDate = DateTime.Now,
-                    LastUpdated = DateTime.Now
-                };
-                _context.InventoryItems.Add(inventoryItem);
-                await _context.SaveChangesAsync();
+                    // Se c'è più di un'unità, mostra un elenco per scegliere quale modificare
+                    if (existingItems.Count > 1)
+                    {
+                        var items = existingItems.Select(i => 
+                            $"{i.Product.Name} - Scadenza: {(i.ExpiryDate?.ToString("d") ?? "Non specificata")} - Quantità: {i.CurrentQuantity}").ToArray();
+                        
+                        var selectedItem = await MainThread.InvokeOnMainThreadAsync(async () =>
+                            await Shell.Current.DisplayActionSheet(
+                                "Seleziona l'unità da modificare",
+                                "Annulla",
+                                null,
+                                items));
+
+                        if (selectedItem != "Annulla" && selectedItem != null)
+                        {
+                            var index = Array.IndexOf(items, selectedItem);
+                            if (index >= 0)
+                            {
+                                var parameters = new Dictionary<string, object>
+                                {
+                                    { "Item", existingItems[index] }
+                                };
+                                await MainThread.InvokeOnMainThreadAsync(async () =>
+                                    await Shell.Current.GoToAsync($"{nameof(EditItemPage)}", parameters));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var parameters = new Dictionary<string, object>
+                        {
+                            { "Item", existingItems[0] }
+                        };
+                        await MainThread.InvokeOnMainThreadAsync(async () =>
+                            await Shell.Current.GoToAsync($"{nameof(EditItemPage)}", parameters));
+                    }
+                }
+                else if (action == "Aggiungi nuova unità")
+                {
+                    var parameters = new Dictionary<string, object>
+                    {
+                        { "barcode", barcode }
+                    };
+                    await MainThread.InvokeOnMainThreadAsync(async () =>
+                        await Shell.Current.GoToAsync($"{nameof(ProductDetailsPage)}", parameters));
+                }
             }
             else
             {
-                // Incrementa la quantità
-                inventoryItem.CurrentQuantity++;
-                inventoryItem.LastUpdated = DateTime.Now;
-                await _context.SaveChangesAsync();
+                // Se non ci sono unità esistenti, vai direttamente alla pagina dei dettagli
+                var parameters = new Dictionary<string, object>
+                {
+                    { "barcode", barcode }
+                };
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                    await Shell.Current.GoToAsync($"{nameof(ProductDetailsPage)}", parameters));
             }
-
-            await Shell.Current.GoToAsync("..");
         }
         catch (Exception ex)
         {
-            await Shell.Current.DisplayAlert("Errore", "Impossibile processare il barcode", "OK");
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+                await Shell.Current.DisplayAlert("Errore", "Impossibile processare il barcode", "OK"));
         }
         finally
         {
@@ -115,13 +172,19 @@ public partial class ScannerViewModel : BaseViewModel
     [RelayCommand]
     private void StartScanning()
     {
-        IsScanning = true;
-        ScanResult = string.Empty;
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            IsScanning = true;
+            ScanResult = string.Empty;
+        });
     }
 
     [RelayCommand]
     private void StopScanning()
     {
-        IsScanning = false;
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            IsScanning = false;
+        });
     }
 } 

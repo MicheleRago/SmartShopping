@@ -35,7 +35,7 @@ public class OpenFoodFactsService
                 Category = GetStringProperty(product, "categories_tags")?.Split(',')[0] ?? string.Empty,
                 ImageUrl = GetStringProperty(product, "image_url"),
                 Unit = GetStringProperty(product, "quantity"),
-                NutritionalInfo = JsonDocument.Parse(product.GetProperty("nutriments").ToString())
+                NutritionalInfo = product.TryGetProperty("nutriments", out var nutriments) ? nutriments.ToString() : null
             };
         }
         catch (Exception)
